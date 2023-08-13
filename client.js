@@ -52,28 +52,36 @@ const colliderB = {
 	},
 };
 
-globalThis.moveTo = null;
-globalThis.mousePosition = { x: null, y: null };
 document.addEventListener('click', function (event) {
 	const virtualPoint = getVirtualPoint(camera, event.clientX, event.clientY);
 	console.log('>>>virtualPoint', virtualPoint);
-	moveTo = {
-		x: virtualPoint.x,
-		y: virtualPoint.y,
-		z: 0, // this needs to be 1, but now 0 for penetration
+	moveTo(
+		virtualPoint.x,
+		virtualPoint.y,
+		0, // this needs to be 1, but now 0 for penetration
+	);
+	console.log('>>>movingTo', movingTo);
+});
+
+globalThis.movingTo = null;
+function moveTo(x, y, z) {
+	movingTo = {
+		x,
+		y,
+		z,
 		lastMove: Date.now(),
 	};
-	console.log('>>>moveTo', moveTo);
-});
+}
 
 function animate() {
 	renderer.render(scene, camera);
 
-	if (moveTo !== null) {
+	if (movingTo !== null) {
 		const now = Date.now();
-		const advance = 0.0005 * (now - moveTo.lastMove);
-		const target = moveTo;
+		const advance = 0.0005 * (now - movingTo.lastMove);
+		const target = movingTo;
 		const unit = physicsSphere.center;
+		console.log('init', target, unit);
 
 		const deltaX = target.x - unit.x;
 		const deltaY = target.y - unit.y;
@@ -83,28 +91,28 @@ function animate() {
 		const directionY = deltaY / distance;
 		const directionZ = deltaZ / distance;
 		const remainingDistance = distance - advance;
-		console.log('>>>remaining', remainingDistance);
+		console.debug('>>>remaining', remainingDistance);
 		if (remainingDistance <= 0) {
-			moveTo = null;
+			movingTo = null;
 		} else {
 			unit.x += advance * directionX;
 			unit.y += advance * directionY;
 			unit.z += advance * directionZ;
-			moveTo.lastMove = now;
+			movingTo.lastMove = now;
 		}
-	}
 
-	const mtd = computeSpherePlaneMTD(
-		colliderA.shape,
-		colliderA.pose,
-		colliderB.shape,
-		colliderB.pose,
-	);
-	if (mtd) {
-		//colliderA.pose.position.add(mtd.direction.multiplyScalar(mtd.distance));
-		console.log('CORRECTING', mtd);
-		physicsSphere.center.add(mtd.direction.multiplyScalar(mtd.distance));
-		console.log(physicsSphere.center);
+		const mtd = computeSpherePlaneMTD(
+			colliderA.shape,
+			colliderA.pose,
+			colliderB.shape,
+			colliderB.pose,
+		);
+		if (mtd) {
+			//colliderA.pose.position.add(mtd.direction.multiplyScalar(mtd.distance));
+			console.debug('CORRECTING', mtd);
+			physicsSphere.center.add(mtd.direction.multiplyScalar(mtd.distance));
+			console.debug(physicsSphere.center);
+		}
 	}
 
 	requestAnimationFrame(animate);

@@ -17,7 +17,7 @@ export function computeSpherePlaneMTD(
 	posedPlane.copy(plane).applyPose(planePose);
 
 	const distance = posedSphere.center.dot(posedPlane.normal) + posedPlane.constant;
-	console.log('dot', distance, posedSphere.radius);
+	console.debug('dot', distance, posedSphere.radius);
 
 	if (distance >= posedSphere.radius) return null;
 
