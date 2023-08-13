@@ -72,6 +72,7 @@ function moveTo(x, y, z) {
 		lastMove: Date.now(),
 	};
 }
+globalThis.moveTo = moveTo;
 
 function animate() {
 	renderer.render(scene, camera);
